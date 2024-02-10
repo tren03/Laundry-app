@@ -15,11 +15,12 @@ import {
   decrementQuantity,
   incrementQuantity,
 } from "../CartReducer";
-import { decrementQty, incrementQty } from "../ProductReducer";
-import { doc, setDoc } from "firebase/firestore";
+import { cleanProduct,decrementQty, incrementQty } from "../ProductReducer";
+import { updateDoc,addDoc,getDoc, doc, setDoc, arrayUnion } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 const CartScreen = () => {
+  const address = useSelector((state)=>state.address.address)
   const cart = useSelector((state) => state.cart.cart);
   const route = useRoute();
   const total = cart
@@ -31,17 +32,39 @@ const CartScreen = () => {
   const placeOrder = async () => {
     navigation.navigate("Order");
     dispatch(cleanCart());
-    await setDoc(
+    dispatch(cleanProduct());
+    await updateDoc(
       doc(db, "users", `${userUid}`),
       {
-        orders: { ...cart },
+        orders: arrayUnion({ 
+        orders_placed:[...cart] ,
         pickUpDetails: route.params,
-      },
-      {
-        merge: true,
-      }
+        delivery: address,
+        status: "In progress",
+      }),
+    }
     );
   };
+
+  const calculateDeliveryFee = (distance) => {
+    let deliveryFee = 0;
+  
+    if (distance <= 5) {
+      deliveryFee = 40;
+    } else if (distance <= 10) {
+      deliveryFee = 40 + (distance - 5) * 10;
+    } else {
+      deliveryFee = 100;
+    }
+  
+    return deliveryFee.toFixed(2); // Round to two decimal places
+  };
+  
+  // // Example usage:
+  // const distance = 7; // Assume the distance is 7 KM
+  // const deliveryFee = calculateDeliveryFee(distance);
+  // console.log("Delivery Fee:", deliveryFee); // Output: Delivery Fee: 60.00
+  
   return (
     <>
       <ScrollView style={{ marginTop: 50 }}>
@@ -153,7 +176,7 @@ const CartScreen = () => {
                   </Pressable>
 
                   <Text style={{ fontSize: 16, fontWeight: "500" }}>
-                    ${item.price * item.quantity}
+                    ₹{item.price * item.quantity}
                   </Text>
                 </View>
               ))}
@@ -183,7 +206,7 @@ const CartScreen = () => {
                   >
                     Item Total
                   </Text>
-                  <Text style={{ fontSize: 18, fontWeight: "400" }}>
+                  <Text style={{ fontSize: 18, fontWeight: "400",color: "#088F8F" }}>
                     ₹{total}
                   </Text>
                 </View>
@@ -199,7 +222,7 @@ const CartScreen = () => {
                   <Text
                     style={{ fontSize: 18, fontWeight: "400", color: "gray" }}
                   >
-                    Delivery Fee | 1.2KM
+                    Delivery Fee | {parseFloat(route.params.distance).toFixed(2)}KM
                   </Text>
                   <Text
                     style={{
@@ -208,17 +231,11 @@ const CartScreen = () => {
                       color: "#088F8F",
                     }}
                   >
-                    FREE
+                    ₹{calculateDeliveryFee(route.params.distance)}
                   </Text>
                 </View>
 
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text
-                    style={{ fontSize: 18, fontWeight: "500", color: "gray" }}
-                  >
-                    Free Delivery on Your order
-                  </Text>
-                </View>
+                
 
                 <View
                   style={{
@@ -240,7 +257,7 @@ const CartScreen = () => {
                   <Text
                     style={{ fontSize: 18, fontWeight: "500", color: "gray" }}
                   >
-                    selected Date
+                    Selected Date
                   </Text>
                   <Text
                     style={{
@@ -249,7 +266,7 @@ const CartScreen = () => {
                       color: "#088F8F",
                     }}
                   >
-                    {/* {route.params.pickUpDate} */}
+                    {route.params.Date.toString().split(' ').slice(0, 3).join(' ')}
                   </Text>
                 </View>
 
@@ -288,7 +305,7 @@ const CartScreen = () => {
                   <Text
                     style={{ fontSize: 18, fontWeight: "500", color: "gray" }}
                   >
-                    selected Pick Up Time
+                    Selected Pick Up Time
                   </Text>
 
                   <Text
@@ -322,7 +339,7 @@ const CartScreen = () => {
                     To Pay
                   </Text>
                   <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-                    {total + 95}
+                    ₹{(parseFloat(total) + parseFloat(calculateDeliveryFee(route.params.distance))).toFixed(2)}
                   </Text>
                 </View>
               </View>

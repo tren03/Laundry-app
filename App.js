@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import HomeScreen from "./screens/HomeScreen";
 import StackNavigator from "./StackNavigator";
 import store from "./store";
+import CustomLocation from "./screens/CustomLocation";
 
 export default function App() {
   return (

@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View,SafeAreaView,Pressable } from 'react-native'
-import React from 'react'
-import { auth } from '../firebase'
+import React from 'react';
+import { StyleSheet, Text, View, SafeAreaView, Pressable } from 'react-native';
+import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 
@@ -14,19 +14,41 @@ const ProfileScreen = () => {
             console.log(err);
         })
     }
-  return (
-    <SafeAreaView style={{flex:1,justifyContent:"center",alignItems:"center"}}>
-      <Pressable style={{marginVertical:10}}>
-        <Text>welcome {user.email}</Text>
-      </Pressable>
 
-      <Pressable onPress={signOutUser}>
-          <Text>Sign Out</Text>
-      </Pressable>
-    </SafeAreaView>
-  )
+    return (
+        <SafeAreaView style={styles.container}>
+            <Text style={styles.welcomeText}>Welcome, {user.email}</Text>
+
+            <Pressable onPress={signOutUser} style={styles.signOutButton}>
+                <Text style={styles.signOutButtonText}>Sign Out</Text>
+            </Pressable>
+            <Pressable style={styles.signOutButton} onPress={()=>navigation.navigate('ViewOrders')}><Text style={styles.signOutButtonText}>View orders</Text></Pressable>
+        </SafeAreaView>
+    );
 }
 
-export default ProfileScreen
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    welcomeText: {
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 20,
+    },
+    signOutButton: {
+      marginTop:10,
+        backgroundColor: "#367588",
+        padding: 10,
+        borderRadius: 8,
+    },
+    signOutButtonText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 18,
+    },
+});
 
-const styles = StyleSheet.create({})
+export default ProfileScreen;

@@ -14,6 +14,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
+import AdminScreen from "./AdminScreen";
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [loading,setLoading] = useState(false);
@@ -35,12 +36,24 @@ const LoginScreen = () => {
   },[])
   
   const login = () => {
-    signInWithEmailAndPassword(auth,email,password).then((userCredential) => {
-      console.log("user credential",userCredential);
-      const user = userCredential.user;
-      console.log("user details",user)
-    })
-  }
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        // Check if the user is logged in as admin
+        if (user.email === "admin@laundryapp.com" && user.uid === "lQCGIlrEryQI3gk77mQ3OdIGod13") {
+          // Navigate to the admin screen
+          navigation.replace("Admin");
+        } else {
+          // Navigate to the regular user screen
+          navigation.replace("Home");
+        }
+      })
+      .catch((error) => {
+        // Handle login errors
+        console.log("Login error:", error.message);
+      });
+  };
+  
 
   return (
     <SafeAreaView

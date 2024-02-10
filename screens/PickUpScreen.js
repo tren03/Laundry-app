@@ -6,12 +6,13 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  Alert
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import HorizontalDatepicker from "@awrminkhodaei/react-native-horizontal-datepicker";
 import { useSelector } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { cleanCart } from "../CartReducer"; // Adjust the path accordingly
 
 const PickUpScreen = () => {
   const [selectedDate, setSelectedDate] = useState("");
@@ -19,9 +20,13 @@ const PickUpScreen = () => {
   const total = cart
     .map((item) => item.quantity * item.price)
     .reduce((curr, prev) => curr + prev, 0);
-  const [selectedTime, setSelectedTime] = useState([]);
+  const [selectedTime, setSelectedTime] = useState(""); // Changed to a single string
   const [delivery, setDelivery] = useState([]);
   const deliveryTime = [
+    {
+      id: "4",
+      name: "Tommorrow",
+    },
     {
       id: "0",
       name: "2-3 Days",
@@ -38,10 +43,7 @@ const PickUpScreen = () => {
       id: "3",
       name: "5-6 Days",
     },
-    {
-      id: "4",
-      name: "Tommorrow",
-    },
+    
   ];
 
   const times = [
@@ -58,7 +60,7 @@ const PickUpScreen = () => {
       time: "1:00 PM",
     },
     {
-      id: "2",
+      id: "3",
       time: "2:00 PM",
     },
     {
@@ -70,37 +72,60 @@ const PickUpScreen = () => {
       time: "4:00 PM",
     },
   ];
+  console.log(selectedDate,selectedTime,delivery)
   const navigation = useNavigation();
   const proceedToCart = () => {
-      if(!selectedDate || !selectedTime || !delivery){
-        Alert.alert(
-            "Empty or invalid",
-            "Please select all the fields",
-            [
-              {
-                text: "Cancel",
-                onPress: () => console.log("Cancel Pressed"),
-                style: "cancel"
-              },
-              { text: "OK", onPress: () => console.log("OK Pressed") }
-            ],
-            { cancelable: false }
-          );
-      }
-      if(selectedDate && selectedTime && delivery){
-        navigation.replace("Cart",{
-            pickUpDate:selectedDate,
-            selectedTime:selectedTime,
-            no_Of_days:delivery,
+    if (!selectedDate || !selectedTime || !delivery) {
+      Alert.alert(
+        "Empty or invalid",
+        "Please select all the fields",
+        [
+          {
+            text: "OK",
+            onPress: () => console.log("OK Pressed"),
+          },
+        ],
+        { cancelable: false }
+      );
+    } else 
+    {
+      
+      navigation.replace("Cart", {
+        Date: selectedDate,
+        selectedTime: selectedTime,
+        no_Of_days: delivery,
+        distance:distance,
+      });
+    }
+  };
+  
+  const route = useRoute();
+  const currentAddress = route.params.currentAddress;
+  const distance = route.params.distance;
 
-        })
-      }
-  }
+
+  const currentDate = new Date();
+  const startDate = new Date(currentDate);
+  startDate.setDate(startDate.getDate() + 1);
+
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 7); 
+
+  
+
 
   return (
     <>
       <SafeAreaView>
-        <Text style={{ fontSize: 16, fontWeight: "500", marginHorizontal: 10 }}>
+        <Text style={{fontSize: 18,
+    fontWeight: "bold",
+    color: "#333", // adjust the color according to your app's theme
+    marginTop: 20, // adjust the margin top as needed for spacing
+    marginBottom: 10, // adjust the margin bottom as needed for spacing
+    marginLeft: 10, }}>Pickup and delivery to: {currentAddress}</Text>
+        {/* <Text
+          style={{ fontSize: 16, fontWeight: "500", marginHorizontal: 10 }}
+        >
           enter Address
         </Text>
         <TextInput
@@ -112,16 +137,18 @@ const PickUpScreen = () => {
             borderRadius: 9,
             margin: 10,
           }}
-        />
+        /> */}
 
-        <Text style={{ fontSize: 16, fontWeight: "500", marginHorizontal: 10 }}>
+        <Text
+          style={{ fontSize: 16, fontWeight: "500", marginHorizontal: 10 }}
+        >
           Pick Up Date
         </Text>
         <HorizontalDatepicker
           mode="gregorian"
-          startDate={new Date("2023-02-21")}
-          endDate={new Date("2023-02-28")}
-          initialSelectedDate={new Date("2020-08-22")}
+          startDate={startDate}
+          endDate={endDate}
+          initialSelectedDate={startDate}
           onSelectedDateChange={(date) => setSelectedDate(date)}
           selectedItemWidth={170}
           unselectedItemWidth={38}
@@ -134,7 +161,9 @@ const PickUpScreen = () => {
           flatListContainerStyle={styles.flatListContainerStyle}
         />
 
-        <Text style={{ fontSize: 16, fontWeight: "500", marginHorizontal: 10 }}>
+        <Text
+          style={{ fontSize: 16, fontWeight: "500", marginHorizontal: 10 }}
+        >
           Select Time
         </Text>
 
@@ -142,9 +171,9 @@ const PickUpScreen = () => {
           {times.map((item, index) => (
             <Pressable
               key={index}
-              onPress={() => setSelectedTime(item.time)}
+              onPress={() => setSelectedTime(item.time)} // Set a single time, not an array
               style={
-                selectedTime.includes(item.time)
+                selectedTime === item.time // Check if selectedTime matches the current time
                   ? {
                       margin: 10,
                       borderRadius: 7,
@@ -165,7 +194,9 @@ const PickUpScreen = () => {
             </Pressable>
           ))}
         </ScrollView>
-        <Text style={{ fontSize: 16, fontWeight: "500", marginHorizontal: 10 }}>
+        <Text
+          style={{ fontSize: 16, fontWeight: "500", marginHorizontal: 10 }}
+        >
           Delivery Date
         </Text>
 
@@ -202,7 +233,7 @@ const PickUpScreen = () => {
         <Pressable
           style={{
             backgroundColor: "#088F8F",
-            marginTop:"auto",
+            marginTop: "auto",
             padding: 10,
             marginBottom: 40,
             margin: 15,
@@ -213,8 +244,14 @@ const PickUpScreen = () => {
           }}
         >
           <View>
-            <Text style={{ fontSize: 17, fontWeight: "600", color: "white" }}>
-              {cart.length} items | $ {total}
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: "600",
+                color: "white",
+              }}
+            >
+              {cart.length} items | ₹ {total}
             </Text>
             <Text
               style={{
@@ -229,7 +266,13 @@ const PickUpScreen = () => {
           </View>
 
           <Pressable onPress={proceedToCart}>
-            <Text style={{ fontSize: 17, fontWeight: "600", color: "white" }}>
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: "600",
+                color: "white",
+              }}
+            >
               Proceed to Cart
             </Text>
           </Pressable>
