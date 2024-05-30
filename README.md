@@ -61,3 +61,18 @@ To get a local copy up and running follow these simple steps:
 1. Clone the repo
    ```sh
    git clone https://github.com/your-username/laundry-app.git
+
+2. Install all packages
+   ```sh
+   npm install
+   
+3. Install latest expo sdk
+   ```sh
+   npm install expo@51
+   
+4. Start expo server
+   ```sh
+   npx expo start
+   
+
+
